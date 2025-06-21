@@ -7,7 +7,7 @@ As of right now you can:
 - Toggle Room Triggers
 - Toggle Map Triggers
 - Toggle Quit Box
-- 
+  
 Room utils currently only works with GorillaInfoWatch. I may add support for other mods later such as BananaOS, GorillaStats, exc...
 
 If you want to add support for them mods yourself feel free to fork and make a pull request.
