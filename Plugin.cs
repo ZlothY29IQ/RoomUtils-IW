@@ -153,24 +153,20 @@ namespace GorillaTagModTemplateProject
                 }
                 else
                 {
-                    UnityEngine.Debug.Log("Not in a room.");
+                    UnityEngine.Debug.Log("Not connected to a room.");
                 }
 
                 
 
-                string mapToJoin;
-
+                
                 if (PhotonNetworkController.Instance.currentJoinTrigger == null)
                 {
-                    UnityEngine.Debug.Log("No join trigger found, defaulting to forest.");
-                    mapToJoin = "forest";
-                }
-                else
-                {
-                    mapToJoin = PhotonNetworkController.Instance.currentJoinTrigger.networkZone;
-                    UnityEngine.Debug.Log("Found join trigger, zone: " + mapToJoin);
+                    UnityEngine.Debug.LogWarning("No current join trigger found, skipping join random.");
+                    SetContent();
+                    return;
                 }
 
+                string mapToJoin = PhotonNetworkController.Instance.currentJoinTrigger.networkZone;
                 GorillaNetworking.GorillaNetworkJoinTrigger triggerToUse = GorillaComputer.instance.GetJoinTriggerForZone(mapToJoin);
 
                 if (triggerToUse != null)
@@ -185,6 +181,7 @@ namespace GorillaTagModTemplateProject
 
                 SetContent();
             }
+
 
 
 
