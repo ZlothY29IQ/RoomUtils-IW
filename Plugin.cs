@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using BepInEx;
 using GorillaInfoWatch.Attributes;
@@ -15,7 +15,7 @@ using GorillaNetworking;
 using System.Collections;
 using System.Threading.Tasks;
 
-namespace GorillaTagModTemplateProject
+namespace RoomUtills
 {
     [BepInPlugin(PluginInfo.GUID, PluginInfo.Name, PluginInfo.Version)]
     public class Plugin : BaseUnityPlugin
@@ -37,7 +37,6 @@ namespace GorillaTagModTemplateProject
         {
             Utilla.Events.GameInitialized += OnGameInitialized;
         }
-        
 
         void OnEnable()
         {
@@ -51,19 +50,16 @@ namespace GorillaTagModTemplateProject
 
         void OnGameInitialized(object sender, EventArgs e)
         {
-            // Could apply initial trigger states here if needed
         }
 
         public void OnJoin()
         {
             inRoom = true;
-            
         }
 
         public void OnLeave()
         {
             inRoom = false;
-            
         }
 
         [ShowOnHomeScreen]
@@ -80,6 +76,9 @@ namespace GorillaTagModTemplateProject
             private static ConfigEntry<bool> disableQuitBox = Plugin.Instance.Config.Bind(
                 "Room Utils", "DisableQuitBox", false, "Disable quitbox trigger");
 
+            private bool quitConfirmationPending = false;
+            private string quitConfirmationMessage = "";
+
             public override ScreenContent GetContent()
             {
                 var lines = new LineBuilder();
@@ -91,41 +90,44 @@ namespace GorillaTagModTemplateProject
                 lines.Add($"Join Random",
                         new List<Widget_Base> { new Widget_PushButton(JoinRandom) });
 
+                lines.Add($"Quit Game",
+                        new List<Widget_Base> { new Widget_PushButton(QuitGame) });
+
+                if (quitConfirmationPending)
+                {
+                    lines.Add(quitConfirmationMessage, new List<Widget_Base>());
+                }
 
                 lines.Add(" ", new List<Widget_Base>());
 
-                // Get current active states on game start
                 bool roomTriggersActive = IsTriggerActive("Environment Objects/TriggerZones_Prefab/JoinRoomTriggers_Prefab");
                 bool mapTriggersActive = IsTriggerActive("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab");
                 bool quitBoxActive = IsTriggerActive("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab/QuitBox");
 
                 lines.Add("Room Triggers",
                     new List<Widget_Base> { new Widget_Switch(roomTriggersActive, (bool value) =>
-        {
-            SetTriggerState("Environment Objects/TriggerZones_Prefab/JoinRoomTriggers_Prefab", value);
-            SetContent();
-        })});
-
+                {
+                    SetTriggerState("Environment Objects/TriggerZones_Prefab/JoinRoomTriggers_Prefab", value);
+                    SetContent();
+                })});
 
                 lines.Add("Map Triggers",
                     new List<Widget_Base> { new Widget_Switch(mapTriggersActive, (bool value) =>
-        {
-            SetTriggerState("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab", value);
-            SetContent();
-        })});
-
+                {
+                    SetTriggerState("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab", value);
+                    SetContent();
+                })});
 
                 lines.Add("Quitbox",
                     new List<Widget_Base> { new Widget_Switch(quitBoxActive, (bool value) =>
-        {
-            SetTriggerState("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab/QuitBox", value);
-            SetContent();
-        })});
+                {
+                    SetTriggerState("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab/QuitBox", value);
+                    SetContent();
+                })});
 
                 return lines;
             }
 
-            // Helper method to check if trigger GameObject is active
             private bool IsTriggerActive(string objectPath)
             {
                 var obj = GameObject.Find(objectPath);
@@ -138,11 +140,12 @@ namespace GorillaTagModTemplateProject
                 {
                     PhotonNetwork.Disconnect();
                 }
-                else { UnityEngine.Debug.LogWarning("[ROOM UTILS - IW] Attempted to disconnect from room when not connected."); }
+                else
+                {
+                    UnityEngine.Debug.LogWarning("[ROOM UTILS - IW] Attempted to disconnect from room when not connected.");
+                }
                 SetContent();
             }
-
-
 
             private async void JoinRandom(object[] args)
             {
@@ -156,9 +159,6 @@ namespace GorillaTagModTemplateProject
                     UnityEngine.Debug.Log("Not connected to a room.");
                 }
 
-                
-
-                
                 if (PhotonNetworkController.Instance.currentJoinTrigger == null)
                 {
                     UnityEngine.Debug.LogWarning("No current join trigger found, skipping join random.");
@@ -182,9 +182,6 @@ namespace GorillaTagModTemplateProject
                 SetContent();
             }
 
-
-
-
             private void SetTriggerState(string objectPath, bool enabled)
             {
                 GameObject target = GameObject.Find(objectPath);
@@ -194,7 +191,21 @@ namespace GorillaTagModTemplateProject
                 }
             }
 
+            private void QuitGame(object[] args)
+            {
+                if (!quitConfirmationPending)
+                {
+                    quitConfirmationPending = true;
+                    quitConfirmationMessage = "<color=red>Click again to confirm your action</color>";
+                    UnityEngine.Debug.Log("[ROOM UTILS - IW] Quit confirmation requested.");
+                    SetContent();
+                }
+                else
+                {
+                    UnityEngine.Debug.Log("[ROOM UTILS - IW] Quit confirmed. Exiting game.");
+                    Application.Quit();
+                }
+            }
         }
     }
-    
 }
