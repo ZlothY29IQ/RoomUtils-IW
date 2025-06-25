@@ -15,7 +15,7 @@ using GorillaNetworking;
 using System.Collections;
 using System.Threading.Tasks;
 
-namespace GorillaTagModTemplateProject
+namespace RoomUtils
 {
     [BepInPlugin(PluginInfo.GUID, PluginInfo.Name, PluginInfo.Version)]
     public class Plugin : BaseUnityPlugin
@@ -120,6 +120,22 @@ namespace GorillaTagModTemplateProject
         {
             SetTriggerState("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab/QuitBox", value);
             SetContent();
+        })});
+
+
+                bool afkKickDisabled = PhotonNetworkController.Instance != null && PhotonNetworkController.Instance.disableAFKKick;
+                bool initialState = !afkKickDisabled;
+
+                lines.Add("AFK Kick",
+                    new List<Widget_Base> { new Widget_Switch(initialState, (bool value) =>
+        {
+            if (PhotonNetworkController.Instance != null)
+            {
+                PhotonNetworkController.Instance.disableAFKKick = !value;
+                UnityEngine.Debug.Log("[ROOM UTILS - IW] AFK Kick " + (value ? "enabled" : "disabled") + ".");
+            }
+
+              SetContent();
         })});
 
                 return lines;

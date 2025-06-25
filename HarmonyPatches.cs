@@ -2,7 +2,7 @@
 using System.Reflection;
 using HarmonyLib;
 
-namespace GorillaTagModTemplateProject
+namespace RoomUtils
 {
 	/// <summary>
 	/// This class handles applying harmony patches to the game.
