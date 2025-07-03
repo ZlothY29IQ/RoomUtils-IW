@@ -14,6 +14,7 @@ using HarmonyLib.Tools;
 using GorillaNetworking;
 using System.Collections;
 using System.Threading.Tasks;
+using RoomUtils.Patches;
 
 namespace RoomUtils
 {
@@ -36,6 +37,12 @@ namespace RoomUtils
         void Start()
         {
             Utilla.Events.GameInitialized += OnGameInitialized;
+            PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable()
+            {
+                {
+                    PluginInfo.HashKey, PluginInfo.Version
+                }
+            });
         }
         
 
@@ -66,6 +73,18 @@ namespace RoomUtils
             
         }
 
+        /*public static void SpoofRank(bool enabled, string tier = "")
+        {
+            RankedPatch.enabled = enabled;
+            RankedPatch.targetTier = tier;
+        }
+
+        public static void SpoofPlatform(bool enabled, string target = "")
+        {
+            RankedPatch.enabled = enabled;
+            RankedPatch.targetPlatform = target;
+        } */
+
         [ShowOnHomeScreen]
         internal class InfoWatchPage : GorillaInfoWatch.Models.InfoWatchScreen
         {
@@ -90,6 +109,42 @@ namespace RoomUtils
                         new List<Widget_Base> { new Widget_PushButton(Disconnect) });
                 lines.Add($"Join Random",
                         new List<Widget_Base> { new Widget_PushButton(JoinRandom) });
+                // Spoofing options
+                lines.Add(" ", new List<Widget_Base>());
+
+                /*
+                bool spoofingEnabled = RankedPatch.enabled;
+                string spoofedTier = RankedPatch.targetTier ?? "";
+                string spoofedPlatform = RankedPatch.targetPlatform ?? "";
+
+                lines.Add("Spoof Ranked Join",
+                    new List<Widget_Base> {
+        new Widget_Switch(spoofingEnabled, (bool value) =>
+        {
+            Plugin.SpoofRank(value, RankedPatch.targetTier);
+            SetContent();
+        })
+                    });
+
+                lines.Add("Tier",
+                    new List<Widget_Base> {
+        new Widget_TextBox(spoofedTier, (string value) =>
+        {
+            RankedPatch.targetTier = value;
+            SetContent();
+        })
+                    });
+
+                lines.Add("Platform",
+                    new List<Widget_Base> {
+        new Widget_TextBox(spoofedPlatform, (string value) =>
+        {
+            RankedPatch.targetPlatform = value;
+            SetContent();
+        })
+                    }); */
+
+
 
 
                 lines.Add(" ", new List<Widget_Base>());
@@ -164,6 +219,7 @@ namespace RoomUtils
             {
                 if (PhotonNetwork.InRoom)
                 {
+                    NetworkSystem.Instance.ReturnToSinglePlayer();
                     PhotonNetwork.Disconnect();
                     await Task.Delay(2500);
                 }
@@ -171,33 +227,16 @@ namespace RoomUtils
                 {
                     UnityEngine.Debug.Log("Not connected to a room.");
                 }
-
                 
 
-                
-                if (PhotonNetworkController.Instance.currentJoinTrigger == null)
-                {
-                    UnityEngine.Debug.LogWarning("No current join trigger found, skipping join random.");
-                    SetContent();
-                    return;
-                }
+                string gamemode = PhotonNetworkController.Instance.currentJoinTrigger == null ? "forest" : PhotonNetworkController.Instance.currentJoinTrigger.networkZone;
+                PhotonNetworkController.Instance.AttemptToJoinPublicRoom(GorillaComputer.instance.GetJoinTriggerForZone(gamemode), JoinType.Solo);
+            
 
-                string mapToJoin = PhotonNetworkController.Instance.currentJoinTrigger.networkZone;
-                GorillaNetworking.GorillaNetworkJoinTrigger triggerToUse = GorillaComputer.instance.GetJoinTriggerForZone(mapToJoin);
-
-                if (triggerToUse != null)
-                {
-                    UnityEngine.Debug.Log("Trying to join public room for map: " + mapToJoin);
-                    PhotonNetworkController.Instance.AttemptToJoinPublicRoom(triggerToUse, JoinType.Solo);
-                }
-                else
-                {
-                    UnityEngine.Debug.LogError("Couldn't find a valid join trigger for map: " + mapToJoin);
-                }
-
-                SetContent();
+            SetContent();
             }
 
+            
 
 
 
