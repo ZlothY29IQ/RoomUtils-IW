@@ -16,6 +16,9 @@ using System.Collections;
 using System.Threading.Tasks;
 using RoomUtils.Patches;
 
+[assembly: InfoWatchCompatible]
+
+
 namespace RoomUtils
 {
     [BepInPlugin(PluginInfo.GUID, PluginInfo.Name, PluginInfo.Version)]
@@ -85,7 +88,7 @@ namespace RoomUtils
             RankedPatch.targetPlatform = target;
         } */
 
-        [ShowOnHomeScreen]
+        [ShowOnHomeScreen(DisplayTitle = "Room Utils")]
         internal class InfoWatchPage : GorillaInfoWatch.Models.InfoWatchScreen
         {
             public override string Title => "Room Utils";
@@ -193,6 +196,11 @@ namespace RoomUtils
               SetContent();
         })});
 
+                lines.Add($"Anti Knockback",
+                        new List<Widget_Base> { new Widget_PushButton(NoKnockback) });
+                lines.Add($"Knockback",
+                        new List<Widget_Base> { new Widget_PushButton(Knockback) });
+
                 return lines;
             }
 
@@ -203,6 +211,8 @@ namespace RoomUtils
                 return obj != null && obj.activeSelf;
             }
 
+           
+            
             private void Disconnect(object[] args)
             {
                 if (NetworkSystem.Instance.InRoom)
@@ -213,7 +223,15 @@ namespace RoomUtils
                 SetContent();
             }
 
+            private void Knockback(object[] args)
+            {
+                Patches.KnockbackPatch.enabled = false;
+            }
 
+            private void NoKnockback(object[] args)
+            {
+                Patches.KnockbackPatch.enabled = true;
+            }
 
             private async void JoinRandom(object[] args)
             {
