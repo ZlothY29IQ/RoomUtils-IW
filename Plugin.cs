@@ -89,7 +89,7 @@ namespace RoomUtils
         } */
 
         [ShowOnHomeScreen(DisplayTitle = "Room Utils")]
-        internal class InfoWatchPage : GorillaInfoWatch.Models.Screen
+        internal class InfoWatchPage : GorillaInfoWatch.Models.InfoScreen
         {
             public override string Title => "Room Utils";
 
@@ -102,7 +102,7 @@ namespace RoomUtils
             private static ConfigEntry<bool> disableQuitBox = Plugin.Instance.Config.Bind(
                 "Room Utils", "DisableQuitBox", false, "Disable quitbox trigger");
 
-            public override ScreenLines GetContent()
+            public override InfoContent GetContent()
             {
                 var lines = new LineBuilder();
 
