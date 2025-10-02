@@ -26,6 +26,8 @@ namespace RoomUtils
     {
         public static Plugin Instance { get; private set; }
         internal new ConfigFile Config => base.Config;
+        public static ConfigEntry<bool> NoKnockback { get; private set; }
+        public static ConfigEntry<bool> DisableWind { get; private set; }
 
         internal InfoWatchPage infoWatchPageInstance;
 
@@ -35,11 +37,16 @@ namespace RoomUtils
         void Awake()
         {
             Instance = this;
+
+            NoKnockback = Config.Bind("Room Utils", "NoKnockback", false, "Disable knockback");
+            DisableWind = Config.Bind("Room Utils", "DisableWind", false, "Disable wind effects");
+            DisableWindState.Enabled = DisableWind.Value;
         }
 
         void Start()
         {
             Utilla.Events.GameInitialized += OnGameInitialized;
+            // I don't like the useless property, but I won't remove it -Golden
             PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable()
             {
                 {
@@ -67,13 +74,11 @@ namespace RoomUtils
         public void OnJoin()
         {
             inRoom = true;
-            
         }
 
         public void OnLeave()
         {
             inRoom = false;
-            
         }
 
         /*public static void SpoofRank(bool enabled, string tier = "")
@@ -91,29 +96,22 @@ namespace RoomUtils
         [ShowOnHomeScreen(DisplayTitle = "Room Utils")]
         internal class InfoWatchPage : GorillaInfoWatch.Models.InfoScreen
         {
-            public override string Title => "Room Utils";
+            public override string Title => "Room Utils : 1.1.0";
 
-            private static ConfigEntry<bool> disableJoinTriggers = Plugin.Instance.Config.Bind(
-                "Room Utils", "DisableJoinTriggers", false, "Disable join room triggers");
+            private static ConfigEntry<bool> disableJoinTriggers = Plugin.Instance.Config.Bind("Room Utils", "DisableJoinTriggers", false, "Disable join room triggers");
 
-            private static ConfigEntry<bool> disableMapTriggers = Plugin.Instance.Config.Bind(
-                "Room Utils", "DisableMapTriggers", false, "Disable map transition triggers");
+            private static ConfigEntry<bool> disableMapTriggers = Plugin.Instance.Config.Bind("Room Utils", "DisableMapTriggers", false, "Disable map transition triggers");
 
-            private static ConfigEntry<bool> disableQuitBox = Plugin.Instance.Config.Bind(
-                "Room Utils", "DisableQuitBox", false, "Disable quitbox trigger");
+            private static ConfigEntry<bool> disableQuitBox = Plugin.Instance.Config.Bind("Room Utils", "DisableQuitBox", false, "Disable quitbox trigger");
 
             public override InfoContent GetContent()
             {
-                var lines = new LineBuilder();
+                var lines = new LineBuilder(); 
 
-                lines.Add(" ", new List<Widget_Base>());
-
-                lines.Add($"Disconnect",
-                        new List<Widget_Base> { new Widget_PushButton(Disconnect) });
-                lines.Add($"Join Random",
-                        new List<Widget_Base> { new Widget_PushButton(JoinRandom) });
+                lines.Add($"Disconnect",  new List<Widget_Base> { new Widget_PushButton(Disconnect) });
+                lines.Add($"Join Random", new List<Widget_Base> { new Widget_PushButton(JoinRandom) });
                 // Spoofing options
-                lines.Add(" ", new List<Widget_Base>());
+                lines.Skip();
 
                 /*
                 bool spoofingEnabled = RankedPatch.enabled;
@@ -122,35 +120,30 @@ namespace RoomUtils
 
                 lines.Add("Spoof Ranked Join",
                     new List<Widget_Base> {
-        new Widget_Switch(spoofingEnabled, (bool value) =>
-        {
-            Plugin.SpoofRank(value, RankedPatch.targetTier);
-            SetContent();
-        })
-                    });
-
-                lines.Add("Tier",
-                    new List<Widget_Base> {
-        new Widget_TextBox(spoofedTier, (string value) =>
-        {
-            RankedPatch.targetTier = value;
-            SetContent();
-        })
-                    });
-
-                lines.Add("Platform",
-                    new List<Widget_Base> {
-        new Widget_TextBox(spoofedPlatform, (string value) =>
-        {
-            RankedPatch.targetPlatform = value;
-            SetContent();
-        })
+                        new Widget_Switch(spoofingEnabled, (bool value) =>
+                        {
+                            Plugin.SpoofRank(value, RankedPatch.targetTier);
+                            SetContent();
+                        })
+                                    });
+                
+                                lines.Add("Tier",
+                                    new List<Widget_Base> {
+                        new Widget_TextBox(spoofedTier, (string value) =>
+                        {
+                            RankedPatch.targetTier = value;
+                            SetContent();
+                        })
+                                    });
+                
+                                lines.Add("Platform",
+                                    new List<Widget_Base> {
+                        new Widget_TextBox(spoofedPlatform, (string value) =>
+                        {
+                            RankedPatch.targetPlatform = value;
+                            SetContent();
+                        })
                     }); */
-
-
-
-
-                lines.Add(" ", new List<Widget_Base>());
 
                 // Get current active states on game start
                 bool roomTriggersActive = IsTriggerActive("Environment Objects/TriggerZones_Prefab/JoinRoomTriggers_Prefab");
@@ -159,26 +152,26 @@ namespace RoomUtils
 
                 lines.Add("Room Triggers",
                     new List<Widget_Base> { new Widget_Switch(roomTriggersActive, (bool value) =>
-        {
-            SetTriggerState("Environment Objects/TriggerZones_Prefab/JoinRoomTriggers_Prefab", value);
-            SetContent();
-        })});
+                    {
+                        SetTriggerState("Environment Objects/TriggerZones_Prefab/JoinRoomTriggers_Prefab", value);
+                        SetContent();
+                    })});
 
 
                 lines.Add("Map Triggers",
                     new List<Widget_Base> { new Widget_Switch(mapTriggersActive, (bool value) =>
-        {
-            SetTriggerState("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab", value);
-            SetContent();
-        })});
+                    {
+                        SetTriggerState("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab", value);
+                        SetContent();
+                    })});
 
 
                 lines.Add("Quitbox",
                     new List<Widget_Base> { new Widget_Switch(quitBoxActive, (bool value) =>
-        {
-            SetTriggerState("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab/QuitBox", value);
-            SetContent();
-        })});
+                    {
+                        SetTriggerState("Environment Objects/TriggerZones_Prefab/ZoneTransitions_Prefab/QuitBox", value);
+                        SetContent();
+                    })});
 
 
                 bool afkKickDisabled = PhotonNetworkController.Instance != null && PhotonNetworkController.Instance.disableAFKKick;
@@ -186,20 +179,30 @@ namespace RoomUtils
 
                 lines.Add("AFK Kick",
                     new List<Widget_Base> { new Widget_Switch(initialState, (bool value) =>
-        {
-            if (PhotonNetworkController.Instance != null)
-            {
-                PhotonNetworkController.Instance.disableAFKKick = !value;
-                UnityEngine.Debug.Log("[ROOM UTILS - IW] AFK Kick " + (value ? "enabled" : "disabled") + ".");
-            }
+                    {
+                        if (PhotonNetworkController.Instance != null)
+                        {
+                            PhotonNetworkController.Instance.disableAFKKick = !value;
+                            UnityEngine.Debug.Log("[ROOM UTILS - IW] AFK Kick " + (value ? "enabled" : "disabled") + ".");
+                        }
+            
+                          SetContent();
+                    })});
 
-              SetContent();
-        })});
+                lines.Skip();
 
-                lines.Add($"Anti Knockback",
-                        new List<Widget_Base> { new Widget_PushButton(NoKnockback) });
-                lines.Add($"Knockback",
-                        new List<Widget_Base> { new Widget_PushButton(Knockback) });
+                lines.Add("Knockback", new List<Widget_Base> { new Widget_Switch(!Plugin.NoKnockback.Value, value =>
+                {
+                    Plugin.NoKnockback.Value = !value;
+                    SetContent();
+                })});
+                
+                lines.Add("Wind", new List<Widget_Base> { new Widget_Switch(!Plugin.DisableWind.Value, value =>
+                {
+                    Plugin.DisableWind.Value = !value;
+                    DisableWindState.Enabled = !value;
+                    SetContent();
+                })});
 
                 return lines;
             }
@@ -210,8 +213,6 @@ namespace RoomUtils
                 var obj = GameObject.Find(objectPath);
                 return obj != null && obj.activeSelf;
             }
-
-           
             
             private void Disconnect(object[] args)
             {
@@ -245,18 +246,12 @@ namespace RoomUtils
                 {
                     UnityEngine.Debug.Log("Not connected to a room.");
                 }
-                
 
-                string gamemode = PhotonNetworkController.Instance.currentJoinTrigger == null ? "forest" : PhotonNetworkController.Instance.currentJoinTrigger.networkZone;
-                PhotonNetworkController.Instance.AttemptToJoinPublicRoom(GorillaComputer.instance.GetJoinTriggerForZone(gamemode), JoinType.Solo);
-            
+            string gamemode = PhotonNetworkController.Instance.currentJoinTrigger == null ? "forest" : PhotonNetworkController.Instance.currentJoinTrigger.networkZone;
+            PhotonNetworkController.Instance.AttemptToJoinPublicRoom(GorillaComputer.instance.GetJoinTriggerForZone(gamemode), JoinType.Solo);
 
             SetContent();
             }
-
-            
-
-
 
             private void SetTriggerState(string objectPath, bool enabled)
             {
@@ -266,8 +261,35 @@ namespace RoomUtils
                     target.SetActive(enabled);
                 }
             }
-
         }
     }
+
+    [HarmonyPatch(typeof(ForceVolume))]
+    [HarmonyPatch("SliceUpdate")]
+    internal class WindPatch
+    {
+        private static bool Prefix(ForceVolume __instance)
+        {
+            if (DisableWindState.Enabled)
+            {
+                if (__instance.audioSource != null)
+                    __instance.audioSource.enabled = false;
     
+                var volume = Traverse.Create(__instance).Field<Collider>("volume").Value;
+                if (volume != null)
+                    volume.enabled = false;
+    
+                return false;
+            }
+    
+            var volume2 = Traverse.Create(__instance).Field<Collider>("volume").Value;
+            if (volume2 != null)
+                volume2.enabled = true;
+    
+            if (__instance.audioSource != null)
+                __instance.audioSource.enabled = true;
+    
+            return true;
+        }
+    }
 }
