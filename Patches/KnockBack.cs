@@ -1,14 +1,17 @@
-﻿using HarmonyLib;
+using GorillaLocomotion;
+using HarmonyLib;
 using UnityEngine;
 
 namespace RoomUtils.Patches
 {
-    [HarmonyPatch(typeof(GorillaLocomotion.GTPlayer), "ApplyKnockback")]
+    [HarmonyPatch(typeof(GTPlayer), "ApplyKnockback")]
     public class KnockbackPatch
     {
-        public static bool enabled;
+        public static bool Prefix(Vector3 direction, float speed)
+        {
+            bool disabled = Plugin.Knockback.Value || Plugin.KnockbackState.KnockbackEnabled;
 
-        public static bool Prefix(Vector3 direction, float speed) =>
-            !enabled;
+            return !disabled;
+        }
     }
 }
