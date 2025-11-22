@@ -18,7 +18,6 @@ using RoomUtils.Patches;
 
 [assembly: InfoWatchCompatible]
 
-
 namespace RoomUtils
 {
     [BepInPlugin(PluginInfo.GUID, PluginInfo.Name, PluginInfo.Version)]
@@ -26,8 +25,18 @@ namespace RoomUtils
     {
         public static Plugin Instance { get; private set; }
         internal new ConfigFile Config => base.Config;
-        public static ConfigEntry<bool> NoKnockback { get; private set; }
-        public static ConfigEntry<bool> DisableWind { get; private set; }
+        public static ConfigEntry<bool> Knockback { get; private set; }
+        public static ConfigEntry<bool> Wind { get; private set; }
+
+        public static class KnockbackState
+        {
+            public static bool KnockbackEnabled { get; set; }
+        }
+        
+        public static class WindState
+        {
+            public static bool WindEnabled { get; set; }
+        }
 
         internal InfoWatchPage infoWatchPageInstance;
 
@@ -38,15 +47,15 @@ namespace RoomUtils
         {
             Instance = this;
 
-            NoKnockback = Config.Bind("Room Utils", "NoKnockback", false, "Disable knockback");
-            DisableWind = Config.Bind("Room Utils", "DisableWind", false, "Disable wind effects");
-            DisableWindState.Enabled = DisableWind.Value;
+            Knockback = Config.Bind("Room Utils", "NoKnockback", false, "Disable knockback");
+            Wind = Config.Bind("Room Utils", "DisableWind", false, "Disable wind effects");
+            KnockbackState.KnockbackEnabled = Knockback.Value;
+            WindState.WindEnabled = Wind.Value;
         }
 
         void Start()
         {
             Utilla.Events.GameInitialized += OnGameInitialized;
-            // I don't like the useless property, but I won't remove it -Golden
             PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable()
             {
                 {
@@ -96,7 +105,7 @@ namespace RoomUtils
         [ShowOnHomeScreen(DisplayTitle = "Room Utils")]
         internal class InfoWatchPage : GorillaInfoWatch.Models.InfoScreen
         {
-            public override string Title => "Room Utils : 1.1.0";
+            public override string Title => $"Room Utils : {PluginInfo.Version}";
 
             private static ConfigEntry<bool> disableJoinTriggers = Plugin.Instance.Config.Bind("Room Utils", "DisableJoinTriggers", false, "Disable join room triggers");
 
@@ -191,16 +200,17 @@ namespace RoomUtils
 
                 lines.Skip();
 
-                lines.Add("Knockback", new List<Widget_Base> { new Widget_Switch(!Plugin.NoKnockback.Value, value =>
+                lines.Add("Knockback", new List<Widget_Base> { new Widget_Switch(!Plugin.Knockback.Value, value =>
                 {
-                    Plugin.NoKnockback.Value = !value;
+                    Plugin.Knockback.Value = !value;
+                    KnockbackState.KnockbackEnabled = !value;
                     SetContent();
                 })});
                 
-                lines.Add("Wind", new List<Widget_Base> { new Widget_Switch(!Plugin.DisableWind.Value, value =>
+                lines.Add("Wind", new List<Widget_Base> { new Widget_Switch(!Plugin.Wind.Value, value =>
                 {
-                    Plugin.DisableWind.Value = !value;
-                    DisableWindState.Enabled = !value;
+                    Plugin.Wind.Value = !value;
+                    WindState.WindEnabled = !value;
                     SetContent();
                 })});
 
@@ -261,35 +271,6 @@ namespace RoomUtils
                     target.SetActive(enabled);
                 }
             }
-        }
-    }
-
-    [HarmonyPatch(typeof(ForceVolume))]
-    [HarmonyPatch("SliceUpdate")]
-    internal class WindPatch
-    {
-        private static bool Prefix(ForceVolume __instance)
-        {
-            if (DisableWindState.Enabled)
-            {
-                if (__instance.audioSource != null)
-                    __instance.audioSource.enabled = false;
-    
-                var volume = Traverse.Create(__instance).Field<Collider>("volume").Value;
-                if (volume != null)
-                    volume.enabled = false;
-    
-                return false;
-            }
-    
-            var volume2 = Traverse.Create(__instance).Field<Collider>("volume").Value;
-            if (volume2 != null)
-                volume2.enabled = true;
-    
-            if (__instance.audioSource != null)
-                __instance.audioSource.enabled = true;
-    
-            return true;
         }
     }
 }
