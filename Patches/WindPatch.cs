@@ -15,14 +15,14 @@ namespace RoomUtils.Patches
                 if (__instance.audioSource != null)
                     __instance.audioSource.enabled = false;
 
-                var volume = Traverse.Create(__instance).Field<Collider>("volume").Value;
+                Collider volume = Traverse.Create(__instance).Field<Collider>("volume").Value;
                 if (volume != null)
                     volume.enabled = false;
 
                 return false;
             }
 
-            var volume2 = Traverse.Create(__instance).Field<Collider>("volume").Value;
+            Collider volume2 = Traverse.Create(__instance).Field<Collider>("volume").Value;
             if (volume2 != null)
                 volume2.enabled = true;
 
