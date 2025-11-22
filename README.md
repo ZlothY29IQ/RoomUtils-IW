@@ -7,10 +7,12 @@ As of right now you can:
 - Toggle Room Triggers
 - Toggle Map Triggers
 - Toggle Quit Box
+- AFK Kick
+- Knockback
+- Wind
   
 Room utils currently only works with GorillaInfoWatch. I may add support for other mods later such as BananaOS, GorillaStats, exc...
 
 If you want to add support for them mods yourself feel free to fork and make a pull request.
-![Photo_25_06-21_17_47_35_37](https://github.com/user-attachments/assets/6c0e040c-5d7f-406f-88ad-eb0610ab6131) ![Photo_25_06-21_17_47_41_26](https://github.com/user-attachments/assets/87749879-1746-44f2-bdf4-4975a361cd81)
-
-
+<img width="816" height="1080" alt="image" src="https://github.com/user-attachments/assets/ef34b1e2-ce47-48ce-bf6c-621d65dbf67d" />
+<img width="816" height="1080" alt="image" src="https://github.com/user-attachments/assets/542ff285-38e7-4bb2-9c69-c27c590b0714" />
